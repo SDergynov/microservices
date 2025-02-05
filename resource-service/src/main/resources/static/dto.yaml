@@ -1,0 +1,15 @@
+openapi: 3.0.3
+
+info:
+  title: Resource Service API
+  description: API description.
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+
+    IdDto:
+      type: object
+      properties:
+        id:
+          type: integer
