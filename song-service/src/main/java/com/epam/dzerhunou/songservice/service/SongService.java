@@ -27,11 +27,13 @@ import com.epam.dzerhunou.songservice.repository.SongRepository;
 
 @Service
 public class SongService {
-
-
     public static final String VALIDATION_ERROR = "Validation error";
+    public static final int ALREADY_EXISTS = 409;
+    public static final int BAD_REQUEST = 400;
+    public static final int NOT_FOUND = 404;
+    public static final int YEAR_LOW = 1900;
+    public static final int YEAR_HIGH = 2099;
     private final SongRepository repository;
-
 
     @Autowired
     public SongService(SongRepository repository) {
@@ -41,7 +43,7 @@ public class SongService {
     public ResponseEntity<IdDto> createMetadata(Meta metadata) {
         validateMetadata(metadata);
         if (repository.isExists(metadata.getId())) {
-            throw new ApplicationException(METADATA_FOR_THIS_ID_ALREADY_EXISTS, 409);
+            throw new ApplicationException(METADATA_FOR_THIS_ID_ALREADY_EXISTS, ALREADY_EXISTS);
         }
         repository.create(metadata);
         return ResponseEntity.ok(new IdDto()
@@ -50,7 +52,7 @@ public class SongService {
 
     public DeleteMetadata200Response delete(String idString) {
         if (idString.length() > 200) {
-            throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, 400);
+            throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, BAD_REQUEST);
         }
         List<Integer> ids = parseStringToLongList(idString);
         List<Integer> deletedIds = repository.delete(ids);
@@ -60,7 +62,7 @@ public class SongService {
 
     public ResponseEntity<MetadataDto> getMetadata(Integer id) {
         if (!repository.isExists(id)) {
-            throw new ApplicationException(NOT_FOUND_RESOURCE_WITH_THE_SPECIFIED_ID_DOES_NOT_EXIST, 404);
+            throw new ApplicationException(NOT_FOUND_RESOURCE_WITH_THE_SPECIFIED_ID_DOES_NOT_EXIST, NOT_FOUND);
         }
         return ResponseEntity.ok(repository.getMetadata(id).dto());
     }
@@ -74,7 +76,7 @@ public class SongService {
                 Integer num = Integer.parseInt(item.trim());
                 result.add(num);
             } catch (NumberFormatException e) {
-                throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, 400);
+                throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, BAD_REQUEST);
             }
         }
 
@@ -84,16 +86,16 @@ public class SongService {
     private void validateMetadata(Meta metadata) {
         List<String> missedFields = metadata.getEmptyField();
         if (!CollectionUtils.isEmpty(missedFields)){
-            throw new ValidationException(VALIDATION_ERROR, 400,
+            throw new ValidationException(VALIDATION_ERROR, BAD_REQUEST,
                     Map.of("Missed fields", String.join(", ", missedFields)));
         }
-        if (metadata.getYear() < 1900 && metadata.getYear() > 2099) {
-            throw new ValidationException(VALIDATION_ERROR, 400,
+        if (metadata.getYear() < YEAR_LOW && metadata.getYear() > YEAR_HIGH) {
+            throw new ValidationException(VALIDATION_ERROR, BAD_REQUEST,
                     Map.of("year", YEAR_MUST_BE_IN_A_YYYY_FORMAT,
                             "duration", ""));
         }
         if (!isValidTimeFormat(metadata.getDuration())) {
-            throw new ValidationException(VALIDATION_ERROR, 400,
+            throw new ValidationException(VALIDATION_ERROR, BAD_REQUEST,
                     Map.of("year", "",
                             "duration", DURATION_MUST_BE_IN_THE_FORMAT_MM_SS));
         }
