@@ -1,0 +1,118 @@
+openapi: 3.0.3
+
+info:
+  title: RS Service API
+  description: API description.
+  version: 1.0.0
+
+servers:
+  - url: 'http://localhost:8071/api/v1'
+    description: Local-dev resource backend.
+
+paths:
+  /resources:
+    post:
+      tags: [ resources ]
+      operationId: uploadFile
+      summary: upload mp3 file
+      requestBody:
+        content:
+          audio/mpeg:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: MP3 file uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'dto.yaml/#/components/schemas/IdDto'
+
+    delete:
+      tags: [ resources ]
+      summary: Deletes one or more specified resources
+      operationId: deleteResources
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: Comma-separated list of resource IDs to delete
+          schema:
+            type: string
+#            pattern: '^\d+(,\d+)*$'
+#            maxLength: 199  # Since it must be less than 200 characters
+#            example: "1,2,3"
+      responses:
+        '200':
+          description: Resources successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ids:
+                    type: array
+                    items:
+                      type: integer
+                      description: The ID of the resource.
+                      example: 1
+                description: Object containing the list of IDs of the deleted resources.
+                example:
+                  ids: [ 1, 2 ]
+
+  /resources/{id}:
+    get:
+      tags: [ resources ]
+      operationId: getResource
+      summary: get mp3 file
+      parameters:
+        - in: path
+          name: id
+          description: The unique identifier of the MP3 resource.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download a MP3 file
+          content:
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: The id of resource
+      schema:
+        type: number
+
+#  responses:
+#    401:
+#      description: Authentication information is missing or invalid.
+#    403:
+#      description: Authentication information is missing or invalid.
+#      content:
+#        application/json:
+#          schema:
+#            type: object
+#            properties:
+#              timestamp:
+#                type: string
+#                format: 'date-time'
+#              status:
+#                type: integer
+#              error:
+#                type: string
+#              message:
+#                type: string
+#              path:
+#                type: string
+
+security:
+  - bearerAuth: []
