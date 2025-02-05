@@ -1,0 +1,116 @@
+openapi: 3.0.3
+
+info:
+  title: RS Service API
+  description: API description.
+  version: 1.0.0
+
+servers:
+  - url: 'http://localhost:8072/api/v1'
+    description: Local-dev backend.
+
+paths:
+  /songs:
+    post:
+      tags: [ songs ]
+      operationId: createMetadata
+      summary: create Metadata
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: 'dto.yaml/#/components/schemas/MetadataDto'
+      responses:
+        '200':
+          description: MP3 file uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'dto.yaml/#/components/schemas/IdDto'
+
+    delete:
+      tags: [ songs ]
+      summary: Deletes one or more specified resources
+      operationId: deleteMetadata
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: Comma-separated list of metadata IDs to delete
+          schema:
+            type: string
+            pattern: '^\d+(,\d+)*$'
+            maxLength: 199  # Since it must be less than 200 characters
+            example: "1,2,3"
+      responses:
+        '200':
+          description: Resources successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ids:
+                    type: array
+                    items:
+                      type: integer
+                      description: The ID of the resource.
+                      example: 1
+                description: Object containing the list of IDs of the deleted resources.
+                example:
+                  ids: [ 1, 2 ]
+
+  /songs/{id}:
+    get:
+      tags: [ songs ]
+      operationId: getMetadata
+      summary: get metadata
+      parameters:
+        - in: path
+          name: id
+          description: The unique identifier of the MP3 resource.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Get metadata
+          content:
+            application/json:
+              schema:
+                 $ref: 'dto.yaml/#/components/schemas/MetadataDto'
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: The id of song
+      schema:
+        type: number
+
+  responses:
+    401:
+      description: Authentication information is missing or invalid.
+    403:
+      description: Authentication information is missing or invalid.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: 'date-time'
+              status:
+                type: integer
+              error:
+                type: string
+              message:
+                type: string
+              path:
+                type: string
+
+security:
+  - bearerAuth: []
