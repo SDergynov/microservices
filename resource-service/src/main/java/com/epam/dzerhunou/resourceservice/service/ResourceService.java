@@ -32,6 +32,9 @@ import com.epam.dzerhunou.resourceservice.repository.ResourceRepository;
 
 @Service
 public class ResourceService {
+    public static final int BAD_REQUEST = 400;
+    public static final int NOT_FOUND = 404;
+    public static final int INTERNAL_SERVER_ERROR = 500;
     private final ResourceRepository repository;
     private final MetadataService metadataService;
 
@@ -49,7 +52,7 @@ public class ResourceService {
             return ResponseEntity.ok(new IdDto()
                     .id(id));
         } catch (IOException e) {
-            throw new ApplicationException(INTERNAL_SERVER_ERROR_AN_ERROR_OCCURRED_ON_THE_SERVER, 500);
+            throw new ApplicationException(INTERNAL_SERVER_ERROR_AN_ERROR_OCCURRED_ON_THE_SERVER, INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -58,13 +61,13 @@ public class ResourceService {
         try {
             id = Integer.parseInt(idString);
         } catch (NumberFormatException e) {
-            throw new ApplicationException(BAD_REQUEST_THE_PROVIDED_ID_IS_INVALID, 400);
+            throw new ApplicationException(BAD_REQUEST_THE_PROVIDED_ID_IS_INVALID, BAD_REQUEST);
         }
         if (id <= 0) {
-            throw new ApplicationException(BAD_REQUEST_THE_PROVIDED_ID_IS_INVALID, 400);
+            throw new ApplicationException(BAD_REQUEST_THE_PROVIDED_ID_IS_INVALID, BAD_REQUEST);
         }
         if (!repository.isExists(id)) {
-            throw new ApplicationException(NOT_FOUND_RESOURCE_WITH_THE_SPECIFIED_ID_DOES_NOT_EXIST, 404);
+            throw new ApplicationException(NOT_FOUND_RESOURCE_WITH_THE_SPECIFIED_ID_DOES_NOT_EXIST, NOT_FOUND);
         }
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("audio/mpeg"))
@@ -73,7 +76,7 @@ public class ResourceService {
 
     public DeleteResources200Response delete(String idString) {
         if (idString.length() > 200) {
-            throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, 400);
+            throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, BAD_REQUEST);
         }
         List<Integer> ids = parseStringToLongList(idString);
         List<Integer> deletedIds = repository.delete(ids);
@@ -93,7 +96,7 @@ public class ResourceService {
                 Integer num = Integer.parseInt(item.trim());
                 result.add(num);
             } catch (NumberFormatException e) {
-                throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, 400);
+                throw new ApplicationException(BAD_REQUEST_CSV_STRING_FORMAT_IS_INVALID_OR_EXCEEDS_LENGTH_RESTRICTIONS, BAD_REQUEST);
             }
         }
 
